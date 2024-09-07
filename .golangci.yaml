@@ -1,0 +1,47 @@
+run:
+  skip-dirs:
+    - util
+    - .*~
+    - api/swagger/docs
+  skip-files:
+    - ".*\\.my\\.go$"
+    - _test.go
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+  gci:
+    local-prefixes: github.com/marmotedu/iam
+  godox:
+    keywords:
+      - BUG
+      - FIXME
+      - OPTIMIZE
+      - HACK
+  goimports:
+    local-prefixes: github.com/marmotedu/iam
+  gomoddirectives:
+    replace-local: true
+    replace-allow-list:
+      - github.com/coreos/etcd
+      - google.golang.org/grpc
+      - github.com/marmotedu/api
+      - github.com/marmotedu/component-base
+      - github.com/marmotedu/marmotedu-sdk-go
+  gomodguard:
+    allowed:
+      modules:
+        - gorm.io/gorm
+        - gorm.io/driver/mysql
+        - k8s.io/klog
+      domains:
+        - google.golang.org
+        - gopkg.in
+        - golang.org
+        - github.com
+        - go.uber.org
+  lll:
+    line-length: 240
+  importas:
+    jwt: github.com/appleboy/gin-jwt/v2
+    metav1: github.com/marmotedu/component-base/pkg/meta/v1
