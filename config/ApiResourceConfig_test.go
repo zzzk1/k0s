@@ -10,7 +10,7 @@ import (
 func TestLoadConfig(t *testing.T) {
 
 	t.Run("pod", func(t *testing.T) {
-		apiResource := LoadConfig("../config/template/test-pod.yaml")
+		apiResource := LoadConfig("../config/template/simple-pod.yaml")
 		actual := (*apiResource).(*resource.Pod)
 		expected := resource.Pod{
 			ApiVersion: resource.ApiVersion("v1"),
@@ -43,7 +43,7 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("Job", func(t *testing.T) {
-		apiResource := LoadConfig("../config/template/test-job.yaml")
+		apiResource := LoadConfig("../config/template/simple-job.yaml")
 		actual := *(*apiResource).(*resource.Job)
 
 		expected := resource.Job{
@@ -77,7 +77,7 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("CronJob", func(t *testing.T) {
-		apiResource := LoadConfig("../config/template/test-cronjob.yaml")
+		apiResource := LoadConfig("../config/template/simple-cronjob.yaml")
 		actual := *(*apiResource).(*resource.CronJob)
 		expected := resource.CronJob{
 			ApiVersion: resource.ApiVersion("batch/v1"),
@@ -99,6 +99,23 @@ func TestLoadConfig(t *testing.T) {
 				},
 			},
 		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("ConfigMap", func(t *testing.T) {
+		apiResource := LoadConfig("../config/template/simple-configmap.yaml")
+		actual := *(*apiResource).(*resource.ConfigMap)
+		expected := resource.ConfigMap{
+			ApiVersion: resource.ApiVersion("v1"),
+			Kind:       resource.Kind("ConfigMap"),
+			Metadata: resource.Metadata{
+				Name: "mysql-config",
+			},
+			Data: resource.Data{
+				"host": "db.dev.local",
+				"port": "3306"},
+		}
+
 		assert.Equal(t, expected, actual)
 	})
 }
