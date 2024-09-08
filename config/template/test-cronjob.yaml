@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: echo-hello-10s
+spec:
+  schedule: "* * * * 10"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: echo-hello-10s
+              image: busybox:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - date; echo Hello!
+          restartPolicy: OnFailure

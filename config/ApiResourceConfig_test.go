@@ -75,4 +75,30 @@ func TestLoadConfig(t *testing.T) {
 		}
 		assert.Equal(t, expected, actual)
 	})
+
+	t.Run("CronJob", func(t *testing.T) {
+		apiResource := LoadConfig("../config/template/test-cronjob.yaml")
+		actual := *(*apiResource).(*resource.CronJob)
+		expected := resource.CronJob{
+			ApiVersion: resource.ApiVersion("batch/v1"),
+			Kind:       resource.Kind("CronJob"),
+			Metadata:   resource.Metadata{Name: "echo-hello-10s"},
+			Spec: resource.CronJobSpec{
+				Schedule: "* * * * 10",
+				JobTemplate: resource.JobTemplate{
+					Spec: resource.JobTemplateSpec{
+						resource.Template{
+							Spec: resource.Spec{
+								Containers: []resource.Container{
+									{Name: "echo-hello-10s", Image: "busybox:latest", ImagePullPolicy: "IfNotPresent", Command: []string{"/bin/sh", "-c", "date; echo Hello!"}},
+								},
+								RestartPolicy: "OnFailure",
+							},
+						},
+					},
+				},
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
 }

@@ -15,6 +15,8 @@ func getApiResource(kind string) ApiResourceFactory {
 		return &resource.Pod{}
 	case "Job":
 		return &resource.Job{}
+	case "CronJob":
+		return &resource.CronJob{}
 	default:
 		return nil
 	}
