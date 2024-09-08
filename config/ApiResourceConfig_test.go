@@ -87,7 +87,7 @@ func TestLoadConfig(t *testing.T) {
 				Schedule: "* * * * 10",
 				JobTemplate: resource.JobTemplate{
 					Spec: resource.JobTemplateSpec{
-						resource.Template{
+						Template: resource.Template{
 							Spec: resource.Spec{
 								Containers: []resource.Container{
 									{Name: "echo-hello-10s", Image: "busybox:latest", ImagePullPolicy: "IfNotPresent", Command: []string{"/bin/sh", "-c", "date; echo Hello!"}},
@@ -114,6 +114,25 @@ func TestLoadConfig(t *testing.T) {
 			Data: resource.Data{
 				"host": "db.dev.local",
 				"port": "3306"},
+		}
+
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("Secret", func(t *testing.T) {
+		apiResource := LoadConfig("../config/template/simple-secret.yaml")
+		actual := *(*apiResource).(*resource.Secret)
+		expected := resource.Secret{
+			ApiVersion: resource.ApiVersion("v1"),
+			Kind:       resource.Kind("Secret"),
+			Metadata: resource.Metadata{
+				Name: "user-basic-auth",
+			},
+			Type: resource.SecretType("kubernetes.io/basic-auth"),
+			Data: resource.Data{
+				"username": "cm9vdA==",
+				"password": "MTIzNDU2",
+			},
 		}
 
 		assert.Equal(t, expected, actual)

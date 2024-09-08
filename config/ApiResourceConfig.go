@@ -19,6 +19,8 @@ func getApiResource(kind string) ApiResourceFactory {
 		return &resource.CronJob{}
 	case "ConfigMap":
 		return &resource.ConfigMap{}
+	case "Secret":
+		return &resource.Secret{}
 	default:
 		return nil
 	}
