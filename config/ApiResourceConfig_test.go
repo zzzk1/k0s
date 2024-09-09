@@ -137,4 +137,53 @@ func TestLoadConfig(t *testing.T) {
 
 		assert.Equal(t, expected, actual)
 	})
+
+	t.Run("Deployment", func(t *testing.T) {
+		apiResource := LoadConfig("../config/template/simple-deploy.yaml")
+		actual := *(*apiResource).(*resource.Deployment)
+		expected := resource.Deployment{
+			ApiVersion: "apps/v1",
+			Kind:       "Deployment",
+			Metadata: resource.Metadata{
+				Name: "nginx-deploy",
+				Labels: map[string]string{
+					"app": "nginx-deploy",
+				},
+			},
+			Spec: resource.DeploymentSpec{
+				Replicas: 1,
+				Selector: resource.Selector{
+					MatchLabels: map[string]string{
+						"app": "my-nginx",
+					},
+				},
+				Template: resource.DeploymentTemplate{
+					Metadata: resource.Metadata{
+						Name: "my-nginx",
+						Labels: map[string]string{
+							"app": "my-nginx",
+						},
+					},
+					Spec: resource.Spec{
+						Containers: []resource.Container{
+							{
+								Name:            "my-nginx",
+								Image:           "nginx",
+								ImagePullPolicy: "IfNotPresent",
+								Ports: []resource.Port{
+									{
+										ContainerPort: 80,
+										Protocol:      "TCP",
+									},
+								},
+							},
+						},
+						RestartPolicy: "Always",
+					},
+				},
+			},
+		}
+
+		assert.Equal(t, expected, actual)
+	})
 }

@@ -21,6 +21,8 @@ func getApiResource(kind string) ApiResourceFactory {
 		return &resource.ConfigMap{}
 	case "Secret":
 		return &resource.Secret{}
+	case "Deployment":
+		return &resource.Deployment{}
 	default:
 		return nil
 	}

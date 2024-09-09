@@ -2,6 +2,7 @@ package resource
 
 type RestartPolicy string
 type BackoffLimit int64
+
 type Data map[string]interface{}
 
 type Template struct {
