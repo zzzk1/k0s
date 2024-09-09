@@ -1,9 +1,9 @@
-package resource
+package common
 
 type ApiVersion string
 type Kind string
 
-type Metadata struct {
+type ObjectMeta struct {
 	Name   string            `mapstructure:"name"`
 	Labels map[string]string `mapstructure:"labels"`
 }

@@ -2,7 +2,8 @@ package config
 
 import (
 	"github.com/spf13/viper"
-	"k0s/pkg/apis/resource"
+	"k0s/pkg/apis/resource/storage"
+	"k0s/pkg/apis/resource/workload"
 	"log"
 )
 
@@ -12,17 +13,17 @@ type ApiResourceFactory interface {
 func getApiResource(kind string) ApiResourceFactory {
 	switch kind {
 	case "Pod":
-		return &resource.Pod{}
+		return workload.Pod{}
 	case "Job":
-		return &resource.Job{}
+		return &workload.Job{}
 	case "CronJob":
-		return &resource.CronJob{}
+		return &workload.CronJob{}
 	case "ConfigMap":
-		return &resource.ConfigMap{}
+		return &storage.ConfigMap{}
 	case "Secret":
-		return &resource.Secret{}
+		return &storage.Secret{}
 	case "Deployment":
-		return &resource.Deployment{}
+		return &workload.Deployment{}
 	default:
 		return nil
 	}

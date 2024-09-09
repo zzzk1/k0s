@@ -1,7 +1,10 @@
 package config
 
 import (
-	"k0s/pkg/apis/resource"
+	"k0s/pkg/apis/resource/common"
+	"k0s/pkg/apis/resource/runtime"
+	"k0s/pkg/apis/resource/storage"
+	"k0s/pkg/apis/resource/workload"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,23 +14,23 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("pod", func(t *testing.T) {
 		apiResource := LoadConfig("../config/template/simple-pod.yaml")
-		actual := (*apiResource).(*resource.Pod)
-		expected := resource.Pod{
-			ApiVersion: resource.ApiVersion("v1"),
-			Kind:       resource.Kind("Pod"),
-			Metadata: resource.Metadata{
+		actual := (*apiResource).(workload.Pod)
+		expected := workload.Pod{
+			ApiVersion: common.ApiVersion("v1"),
+			Kind:       common.Kind("Pod"),
+			Metadata: common.ObjectMeta{
 				Name: "my-pod",
 				Labels: map[string]string{
 					"app": "my-application",
 				},
 			},
-			Spec: resource.PodSpec{
-				Containers: []resource.Container{
+			Spec: workload.PodSpec{
+				Containers: []runtime.Container{
 					{
 						Name:            "nginx-container",
 						Image:           "nginx:latest",
 						ImagePullPolicy: "IfNotPresent",
-						Ports: []resource.Port{
+						Ports: []runtime.ContainerPort{
 							{
 								Name:          "http",
 								ContainerPort: 80,
@@ -39,26 +42,26 @@ func TestLoadConfig(t *testing.T) {
 				RestartPolicy: "Always",
 			},
 		}
-		assert.Equal(t, expected, *actual)
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("Job", func(t *testing.T) {
 		apiResource := LoadConfig("../config/template/simple-job.yaml")
-		actual := *(*apiResource).(*resource.Job)
+		actual := *(*apiResource).(*workload.Job)
 
-		expected := resource.Job{
-			ApiVersion: resource.ApiVersion("batch/v1"),
-			Kind:       resource.Kind("Job"),
-			Metadata: resource.Metadata{
+		expected := workload.Job{
+			ApiVersion: common.ApiVersion("batch/v1"),
+			Kind:       common.Kind("Job"),
+			Metadata: common.ObjectMeta{
 				Name: "echo-hello",
 				Labels: map[string]string{
 					"task": "once",
 				},
 			},
-			Spec: resource.JobSpec{
-				Template: resource.Template{
-					Spec: resource.Spec{
-						Containers: []resource.Container{
+			Spec: workload.JobSpec{
+				Template: workload.PodTemplateSpec{
+					Spec: workload.PodSpec{
+						Containers: []runtime.Container{
 							{
 								Name:            "echo-hello",
 								Image:           "python:latest",
@@ -78,19 +81,24 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("CronJob", func(t *testing.T) {
 		apiResource := LoadConfig("../config/template/simple-cronjob.yaml")
-		actual := *(*apiResource).(*resource.CronJob)
-		expected := resource.CronJob{
-			ApiVersion: resource.ApiVersion("batch/v1"),
-			Kind:       resource.Kind("CronJob"),
-			Metadata:   resource.Metadata{Name: "echo-hello-10s"},
-			Spec: resource.CronJobSpec{
+		actual := *(*apiResource).(*workload.CronJob)
+		expected := workload.CronJob{
+			ApiVersion: common.ApiVersion("batch/v1"),
+			Kind:       common.Kind("CronJob"),
+			Metadata:   common.ObjectMeta{Name: "echo-hello-10s"},
+			Spec: workload.CronJobSpec{
 				Schedule: "* * * * 10",
-				JobTemplate: resource.JobTemplate{
-					Spec: resource.JobTemplateSpec{
-						Template: resource.Template{
-							Spec: resource.Spec{
-								Containers: []resource.Container{
-									{Name: "echo-hello-10s", Image: "busybox:latest", ImagePullPolicy: "IfNotPresent", Command: []string{"/bin/sh", "-c", "date; echo Hello!"}},
+				JobTemplate: workload.JobTemplate{
+					Spec: workload.JobSpec{
+						Template: workload.PodTemplateSpec{
+							Spec: workload.PodSpec{
+								Containers: []runtime.Container{
+									{
+										Name:            "echo-hello-10s",
+										Image:           "busybox:latest",
+										ImagePullPolicy: "IfNotPresent",
+										Command:         []string{"/bin/sh", "-c", "date; echo Hello!"},
+									},
 								},
 								RestartPolicy: "OnFailure",
 							},
@@ -104,14 +112,14 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("ConfigMap", func(t *testing.T) {
 		apiResource := LoadConfig("../config/template/simple-configmap.yaml")
-		actual := *(*apiResource).(*resource.ConfigMap)
-		expected := resource.ConfigMap{
-			ApiVersion: resource.ApiVersion("v1"),
-			Kind:       resource.Kind("ConfigMap"),
-			Metadata: resource.Metadata{
+		actual := *(*apiResource).(*storage.ConfigMap)
+		expected := storage.ConfigMap{
+			ApiVersion: common.ApiVersion("v1"),
+			Kind:       common.Kind("ConfigMap"),
+			Metadata: common.ObjectMeta{
 				Name: "mysql-config",
 			},
-			Data: resource.Data{
+			Data: map[string]string{
 				"host": "db.dev.local",
 				"port": "3306"},
 		}
@@ -121,15 +129,15 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("Secret", func(t *testing.T) {
 		apiResource := LoadConfig("../config/template/simple-secret.yaml")
-		actual := *(*apiResource).(*resource.Secret)
-		expected := resource.Secret{
-			ApiVersion: resource.ApiVersion("v1"),
-			Kind:       resource.Kind("Secret"),
-			Metadata: resource.Metadata{
+		actual := *(*apiResource).(*storage.Secret)
+		expected := storage.Secret{
+			ApiVersion: common.ApiVersion("v1"),
+			Kind:       common.Kind("Secret"),
+			Metadata: common.ObjectMeta{
 				Name: "user-basic-auth",
 			},
-			Type: resource.SecretType("kubernetes.io/basic-auth"),
-			Data: resource.Data{
+			Type: "kubernetes.io/basic-auth",
+			Data: map[string]string{
 				"username": "cm9vdA==",
 				"password": "MTIzNDU2",
 			},
@@ -140,37 +148,37 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("Deployment", func(t *testing.T) {
 		apiResource := LoadConfig("../config/template/simple-deploy.yaml")
-		actual := *(*apiResource).(*resource.Deployment)
-		expected := resource.Deployment{
+		actual := *(*apiResource).(*workload.Deployment)
+		expected := workload.Deployment{
 			ApiVersion: "apps/v1",
 			Kind:       "Deployment",
-			Metadata: resource.Metadata{
+			Metadata: common.ObjectMeta{
 				Name: "nginx-deploy",
 				Labels: map[string]string{
 					"app": "nginx-deploy",
 				},
 			},
-			Spec: resource.DeploymentSpec{
+			Spec: workload.DeploymentSpec{
 				Replicas: 1,
-				Selector: resource.Selector{
+				Selector: common.LabelSelector{
 					MatchLabels: map[string]string{
 						"app": "my-nginx",
 					},
 				},
-				Template: resource.DeploymentTemplate{
-					Metadata: resource.Metadata{
+				Template: workload.PodTemplateSpec{
+					Metadata: common.ObjectMeta{
 						Name: "my-nginx",
 						Labels: map[string]string{
 							"app": "my-nginx",
 						},
 					},
-					Spec: resource.Spec{
-						Containers: []resource.Container{
+					Spec: workload.PodSpec{
+						Containers: []runtime.Container{
 							{
 								Name:            "my-nginx",
-								Image:           "nginx",
+								Image:           "nginx:latest",
 								ImagePullPolicy: "IfNotPresent",
-								Ports: []resource.Port{
+								Ports: []runtime.ContainerPort{
 									{
 										ContainerPort: 80,
 										Protocol:      "TCP",
